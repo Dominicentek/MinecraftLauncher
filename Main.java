@@ -63,7 +63,37 @@ public class Main {
             jsonLinks.add(versionData.get("url").getAsString());
         }
     }
-    public static void launch(String username, int index) {
-        System.out.println("Launching version " + versionList.get(index) + " at URL '" + jsonLinks.get(index) + "' with username '" + username + "'");
+    public static void launch(String username, int index) throws Exception {
+        System.out.println("Launching version " + versionList.get(index) + "...")
+        String versionData = new String(download(jsonLinks.get(index)));
+        JsonObject root = new JsonParser().parse(versionData).getAsJsonObject();
+        String assetIndex = root.get("assetIndex").getAsJsonObject().get("id").getAsString();
+        new File("mc").mkdir();
+        new File("mc/versions").mkdir();
+        new File("mc/libraries").mkdir();
+        new File("mc/assets").mkdir();
+        new File("mc/assets/index").mkdir();
+        new File("mc/assets/data").mkdir();
+        File client = new File("mc/versions/" + versionList.get(index) + ".jar");
+        File index = new File("mc/assets/index/" + assetIndex + ".json");
+        if (!client.exists()) {
+            System.out.println("Downloading client...");
+            byte[] clientData = download(root.get("downloads").getAsJsonObject().get("client").getAsJsonObject().get("url").getAsString());
+            OutputStream out = new FileOutputStream(new File("mc/client.jar"));
+            out.write(clientData);
+            out.close();
+        }
+        System.out.println("Downloading assets...");
+        String assetIndexJsonData;
+        if (!index.exists()) {
+            System.out.println("Downloading asset index...");
+            byte[] assetIndexData = download(root.get("assetIndex").getAsJsonObject().get("url"));
+            OutputStream out = new FileOutputStream(new File("mc/assets/index/" + assetIndex + ".json"));
+            out.write(assetIndexData);
+            out.close();
+            assetIndexJsonData = new String(assetIndexData);
+        }
+        else {
+        }
     }
 }
